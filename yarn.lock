@@ -4389,10 +4389,10 @@ supports-preserve-symlinks-flag@^1.0.0:
   resolved "https://registry.yarnpkg.com/supports-preserve-symlinks-flag/-/supports-preserve-symlinks-flag-1.0.0.tgz#6eda4bd344a3c94aea376d4cc31bc77311039e09"
   integrity sha512-ot0WnXS9fgdkgIcePe6RHNk1WA8+muPa6cSjeR3V8K27q9BB1rTE3R1p7Hv0z1ZyAc8s6Vvv8DIyWf681MAt0w==
 
-sync-message@0.0.8:
-  version "0.0.8"
-  resolved "https://registry.yarnpkg.com/sync-message/-/sync-message-0.0.8.tgz#ca20723cd85fe819284ce82de3797ca108b02659"
-  integrity sha512-2DiQIfLgf6OnBU2cNEqV38UZyMD9nUkXyaWXUPFIykdbfpXl3V5x9VmJH4s7M66IK5G1C7wY6KB9W/44E+vVvQ==
+sync-message@^0.0.9:
+  version "0.0.9"
+  resolved "https://registry.yarnpkg.com/sync-message/-/sync-message-0.0.9.tgz#8da80c1103b5eb688729e22d9480b8a59c83aa5d"
+  integrity sha512-mA7WltTNV+kHaM8SkDExirvwH7/+IXPR8+2JSYa2ahKdP+mdatO9/vZuuTKMiBcPAk9zQ5gfAcbSOFwKQeQEIA==
 
 table@^6.0.9:
   version "6.8.0"
