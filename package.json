@@ -10,7 +10,7 @@
   "author": "Alex Hall <alex.mojaki@gmail.com>",
   "sideEffects": false,
   "main": "dist/index.js",
-  "types": "dist/lib/index.d.ts",
+  "types": "dist/index.d.ts",
   "files": [
     "dist/",
     "lib/",
