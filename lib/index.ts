@@ -52,11 +52,11 @@ export class TaskClient<T> {
       throw new Error("Still running a task");
     }
     this.state = "running";
-
+    const th = this;
     const syncMessageCallback: SyncMessageCallback = (messageId: string, awaiting: boolean) => {
-      this._messageId = messageId;
+      th._messageId = messageId;
       if (awaiting) {
-        this.state = "awaitingMessage";
+        th.state = "awaitingMessage";
       }
     };
 
