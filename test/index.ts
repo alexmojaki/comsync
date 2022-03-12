@@ -97,8 +97,8 @@ async function runTests() {
 
     for (const ms of [500, 800]) {
       test = "testSleep";
-      runTask(ms);
-      resultPromise = resultPromise.then(slept => slept > ms && slept < ms * 1.5);
+      runTask(ms, Comlink.proxy(() => (client as any)._messageId));
+      resultPromise = resultPromise.then(({slept, messageId}) => messageId === "" && slept > ms && slept < ms * 1.5);
       await expect(true);
     }
 

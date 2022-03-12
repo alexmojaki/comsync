@@ -49,10 +49,12 @@ Comlink.expose({
     }
   }),
 
-  testSleep: exposeSync((extras, ms: number) => {
+  testSleep: exposeSync(async (extras, ms: number, getMessageId: () => Promise<string>) => {
     const start = performance.now();
     extras.syncSleep(ms);
-    return performance.now() - start;
+    const slept = performance.now() - start;
+    await asyncSleep(100);
+    return {slept, messageId: await getMessageId()};
   }),
 
   testInterrupter: exposeSync(async (extras, getInterrupter: any) => {

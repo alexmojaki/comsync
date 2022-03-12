@@ -53,10 +53,12 @@ export class TaskClient<T> {
     }
     this.state = "running";
     const th = this;
-    const syncMessageCallback: SyncMessageCallback = (messageId: string, awaiting: boolean) => {
+    const syncMessageCallback: SyncMessageCallback = (messageId, status) => {
       th._messageId = messageId;
-      if (awaiting) {
+      if (status === "reading") {
         th.state = "awaitingMessage";
+      } else if (status === "slept" && th._messageId === messageId) {
+        th._messageId = "";
       }
     };
 
@@ -117,7 +119,8 @@ export interface ExposeSyncExtras {
   syncSleep: (ms: number) => void;
 }
 
-type SyncMessageCallback = (messageId: string, awaiting: boolean) => void;
+type SyncMessageCallbackStatus = "reading" | "sleeping" | "slept";
+type SyncMessageCallback = (messageId: string, status: SyncMessageCallbackStatus) => void;
 
 export function exposeSync<T extends any[]>(func: (extras: ExposeSyncExtras, ...args: T) => any) {
   return function (
@@ -125,12 +128,12 @@ export function exposeSync<T extends any[]>(func: (extras: ExposeSyncExtras, ...
     syncMessageCallback: SyncMessageCallback,
     ...args: T
   ) {
-    function fullSyncMessageCallback(awaiting: boolean, options?: { timeout: number }) {
+    function fullSyncMessageCallback(status: "reading" | "sleeping", options?: { timeout: number }) {
       if (!channel) {
         throw new NoChannelError();
       }
       const messageId = uuidv4();
-      syncMessageCallback(messageId, awaiting);
+      syncMessageCallback(messageId, status);
       const response = readMessage(channel, messageId, options);
       if (response) {
         const {message, interrupted} = response;
@@ -138,21 +141,21 @@ export function exposeSync<T extends any[]>(func: (extras: ExposeSyncExtras, ...
           throw new InterruptError();
         }
         return message;
-      // } else if (!awaiting) {  // TODO clear message id properly
-      //   syncMessageCallback("", awaiting);
+      } else if (status === "sleeping") {
+        syncMessageCallback(messageId, "slept");
       }
     }
 
     const extras: ExposeSyncExtras = {
       channel,
       readMessage() {
-        return fullSyncMessageCallback(true);
+        return fullSyncMessageCallback("reading");
       },
       syncSleep(ms: number) {
         if (!(ms > 0)) {
           return;
         }
-        fullSyncMessageCallback(false, {timeout: ms});
+        fullSyncMessageCallback("sleeping", {timeout: ms});
       },
     };
     return func(extras, ...args);
