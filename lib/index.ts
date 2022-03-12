@@ -16,8 +16,8 @@ export class TaskClient<T> {
   public state: "idle" | "running" | "awaitingMessage" = "idle";
   public worker: Worker;
   public workerProxy: any;
-  public interruptRejector?: (reason?: any) => void;
 
+  private _interruptRejector?: (reason?: any) => void;
   private _interruptPromise?: Promise<void>;
   private _messageId = "";
 
@@ -65,7 +65,7 @@ export class TaskClient<T> {
       }
     };
 
-    this._interruptPromise = new Promise((resolve, reject) => this.interruptRejector = reject);
+    this._interruptPromise = new Promise((resolve, reject) => this._interruptRejector = reject);
 
     try {
       return await Promise.race([
@@ -90,7 +90,7 @@ export class TaskClient<T> {
   }
 
   public terminate() {
-    this.interruptRejector?.(new InterruptError("Worker terminated"));
+    this._interruptRejector?.(new InterruptError("Worker terminated"));
     this.workerProxy[Comlink.releaseProxy]();
     this.worker.terminate();
     delete this.workerProxy;
@@ -117,7 +117,7 @@ export class TaskClient<T> {
     this.state = "idle";
     this._messageId = "";
     delete this._interruptPromise;
-    delete this.interruptRejector;
+    delete this._interruptRejector;
   }
 }
 
