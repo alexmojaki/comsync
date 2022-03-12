@@ -44,7 +44,6 @@ export class TaskClient<T> {
 
     this.terminate();
     this._start();
-    this.state = "idle";
   }
 
   public async runTask(proxyMethod: any, ...args: any[]) {
@@ -74,10 +73,7 @@ export class TaskClient<T> {
         this._interruptPromise,
       ]);
     } finally {
-      this.state = "idle";
-      this._messageId = "";
-      delete this._interruptPromise;
-      delete this.interruptRejector;
+      this._reset();
     }
   }
 
@@ -89,7 +85,6 @@ export class TaskClient<T> {
   }
 
   public terminate() {
-    this.state = "idle";
     this.interruptRejector?.(new InterruptError("Worker terminated"));
     this.workerProxy[Comlink.releaseProxy]();
     this.worker.terminate();
@@ -108,8 +103,16 @@ export class TaskClient<T> {
   }
 
   private _start() {
+    this._reset();
     this.worker = this.workerCreator();
     this.workerProxy = Comlink.wrap(this.worker);
+  }
+
+  private _reset() {
+    this.state = "idle";
+    this._messageId = "";
+    delete this._interruptPromise;
+    delete this.interruptRejector;
   }
 }
 
