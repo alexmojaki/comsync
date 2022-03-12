@@ -45,13 +45,15 @@ async function runTests() {
     async function expect(expected: any) {
       const result = await resultPromise;
       const passed = expected === result;
-      testResults.push({
+      const testResult = {
         test,
         result,
         expected,
         passed,
         channelType,
-      });
+      };
+      console.log(testResult)
+      testResults.push(testResult);
     }
 
     async function expectInterrupt() {

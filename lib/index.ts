@@ -48,11 +48,17 @@ export class TaskClient<T> {
 
   public async runTask(proxyMethod: any, ...args: any[]) {
     if (this.state !== "idle") {
-      throw new Error("Still running a task");
+      throw new Error(`State is ${this.state}, not idle`);
     }
+
+    let runningThisTask = true;
     this.state = "running";
     const th = this;
     const syncMessageCallback: SyncMessageCallback = (messageId, status) => {
+      if (!runningThisTask) {
+        return;
+      }
+
       th._messageId = messageId;
       if (status === "reading") {
         th.state = "awaitingMessage";
@@ -73,6 +79,7 @@ export class TaskClient<T> {
         this._interruptPromise,
       ]);
     } finally {
+      runningThisTask = false;
       this._reset();
     }
   }
