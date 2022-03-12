@@ -32,6 +32,7 @@ export class TaskClient<T> {
 
     if (!force) {
       if (this._messageId) {
+        this.state = "running";
         await this._writeMessage({interrupted: true});
         return;
       }
