@@ -44,7 +44,7 @@ async function runTests() {
 
     async function expect(expected: any) {
       const result = await resultPromise;
-      const passed = result === result;
+      const passed = expected === result;
       testResults.push({
         test,
         result,
@@ -110,6 +110,7 @@ async function runTests() {
     await asyncSleep(100);
     await client.interrupt();
     await expect("successfully interrupted");
+    delete client.interrupter;
   }
 
   (window as any).testResults = testResults;
