@@ -7,6 +7,7 @@ import {
   writeMessage
 } from "sync-message";
 import {InterruptError, TaskClient} from "../lib";
+import * as Comlink from "comlink";
 
 const Worker = require("worker-loader!./worker").default;
 
@@ -101,6 +102,14 @@ async function runTests() {
       await expect(true);
     }
 
+    test = "testInterrupter";
+    function getInterrupter(func: () => void) {
+      client.interrupter = func;
+    }
+    runTask(Comlink.proxy(getInterrupter));
+    await asyncSleep(100);
+    await client.interrupt();
+    await expect("successfully interrupted");
   }
 
   (window as any).testResults = testResults;

@@ -73,6 +73,7 @@ export class TaskClient<T> {
       ]);
     } finally {
       this.state = "idle";
+      this._messageId = "";
       delete this._interruptPromise;
       delete this.interruptRejector;
     }
@@ -137,6 +138,8 @@ export function exposeSync<T extends any[]>(func: (extras: ExposeSyncExtras, ...
           throw new InterruptError();
         }
         return message;
+      // } else if (!awaiting) {  // TODO clear message id properly
+      //   syncMessageCallback("", awaiting);
       }
     }
 

@@ -54,4 +54,11 @@ Comlink.expose({
     extras.syncSleep(ms);
     return performance.now() - start;
   }),
+
+  testInterrupter: exposeSync(async (extras, getInterrupter: any) => {
+    await new Promise((resolve) => {
+      return getInterrupter(Comlink.proxy(resolve));
+    });
+    return "successfully interrupted";
+  }),
 });
