@@ -29,7 +29,6 @@ export class TaskClient<T> {
     if (this.state === "idle") {
       return;
     }
-    this.state = "idle";
 
     if (!force) {
       if (this._messageId) {
@@ -45,6 +44,7 @@ export class TaskClient<T> {
 
     this.terminate();
     this._start();
+    this.state = "idle";
   }
 
   public async runTask(proxyMethod: any, ...args: any[]) {

@@ -65,6 +65,7 @@ async function runTests() {
     }
 
     let test = "testBasic";
+    await client.interrupt();  // should do nothing because it's idle
     runTask(10);
     await expect(20);
 
