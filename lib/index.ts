@@ -25,21 +25,19 @@ export class TaskClient<T> {
     this._start();
   }
 
-  public async interrupt(force?: boolean) {
+  public async interrupt() {
     if (this.state === "idle") {
       return;
     }
 
-    if (!force) {
-      if (this._messageId) {
-        await this._writeMessage({interrupted: true});
-        return;
-      }
+    if (this._messageId) {
+      await this._writeMessage({interrupted: true});
+      return;
+    }
 
-      if (this.interrupter) {
-        await this.interrupter();
-        return;
-      }
+    if (this.interrupter) {
+      await this.interrupter();
+      return;
     }
 
     this.terminate();
