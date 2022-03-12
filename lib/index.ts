@@ -32,7 +32,6 @@ export class TaskClient<T> {
 
     if (!force) {
       if (this._messageId) {
-        this.state = "running";
         await this._writeMessage({interrupted: true});
         return;
       }
@@ -83,7 +82,6 @@ export class TaskClient<T> {
     if (this.state !== "awaitingMessage") {
       throw new Error("Not waiting for message");
     }
-    this.state = "running";
     await this._writeMessage({message});
   }
 
@@ -101,6 +99,7 @@ export class TaskClient<T> {
     if (!_messageId) {
       throw new Error("No messageId set");
     }
+    this.state = "running";
     this._messageId = "";
     await writeMessage(this.channel, message, _messageId);
   }
