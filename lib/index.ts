@@ -56,7 +56,7 @@ export class TaskClient<T> {
     this.state = "running";
     const th = this;
     const syncMessageCallback: SyncMessageCallback = (messageId, status) => {
-      if (!runningThisTask) {
+      if (!runningThisTask || status === "init") {
         return;
       }
 
@@ -111,7 +111,7 @@ export class TaskClient<T> {
   private _start() {
     this._reset();
     this.worker = this.workerCreator();
-    this.workerProxy = Comlink.wrap(this.worker);
+    this.workerProxy = Comlink.wrap<T>(this.worker);
   }
 
   private _reset() {
@@ -128,20 +128,21 @@ export interface ExposeSyncExtras {
   syncSleep: (ms: number) => void;
 }
 
-type SyncMessageCallbackStatus = "reading" | "sleeping" | "slept";
+type SyncMessageCallbackStatus = "init" | "reading" | "sleeping" | "slept";
 type SyncMessageCallback = (
   messageId: string,
   status: SyncMessageCallbackStatus,
 ) => void;
 
-export function exposeSync<T extends any[]>(
-  func: (extras: ExposeSyncExtras, ...args: T) => any,
+export function exposeSync<T extends any[], R>(
+  func: (extras: ExposeSyncExtras, ...args: T) => R,
 ) {
-  return function (
+  return async function (
     channel: Channel | null,
     syncMessageCallback: SyncMessageCallback,
     ...args: T
-  ) {
+  ): Promise<R> {
+    await syncMessageCallback("", "init");
     function fullSyncMessageCallback(
       status: "reading" | "sleeping",
       options?: {timeout: number},

@@ -30,7 +30,7 @@ async function runTests() {
     channels.push(makeAtomicsChannel());
   }
 
-  const client = new TaskClient<any>(() => new Worker());
+  const client = new TaskClient(() => new Worker());
   const testResults: any[] = [];
 
   for (const channel of channels) {
