@@ -4,7 +4,7 @@ import {
   makeAtomicsChannel,
   makeServiceWorkerChannel,
   ServiceWorkerError,
-  writeMessage
+  writeMessage,
 } from "sync-message";
 import {InterruptError, TaskClient} from "../lib";
 import * as Comlink from "comlink";
@@ -52,7 +52,7 @@ async function runTests() {
         passed,
         channelType,
       };
-      console.log(testResult)
+      console.log(testResult);
       testResults.push(testResult);
     }
 
@@ -68,7 +68,7 @@ async function runTests() {
     }
 
     let test = "testBasic";
-    await client.interrupt();  // should do nothing because it's idle
+    await client.interrupt(); // should do nothing because it's idle
     runTask(10);
     await expect(20);
 
@@ -99,8 +99,14 @@ async function runTests() {
 
     for (const ms of [500, 800]) {
       test = "testSleep";
-      runTask(ms, Comlink.proxy(() => (client as any)._messageId));
-      resultPromise = resultPromise.then(({slept, messageId}) => messageId === "" && slept > ms && slept < ms * 1.5);
+      runTask(
+        ms,
+        Comlink.proxy(() => (client as any)._messageId),
+      );
+      resultPromise = resultPromise.then(
+        ({slept, messageId}) =>
+          messageId === "" && slept > ms && slept < ms * 1.5,
+      );
       await expect(true);
     }
 

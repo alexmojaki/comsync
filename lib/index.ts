@@ -1,5 +1,5 @@
 import {Channel, readMessage, uuidv4, writeMessage} from "sync-message";
-import * as Comlink from 'comlink';
+import * as Comlink from "comlink";
 
 export class InterruptError extends Error {
   // To avoid having to use instanceof
@@ -21,7 +21,10 @@ export class TaskClient<T> {
   private _interruptPromise?: Promise<void>;
   private _messageId = "";
 
-  public constructor(public workerCreator: () => Worker, public channel?: Channel) {
+  public constructor(
+    public workerCreator: () => Worker,
+    public channel?: Channel,
+  ) {
     this._start();
   }
 
@@ -65,15 +68,13 @@ export class TaskClient<T> {
       }
     };
 
-    this._interruptPromise = new Promise((resolve, reject) => this._interruptRejector = reject);
+    this._interruptPromise = new Promise(
+      (resolve, reject) => (this._interruptRejector = reject),
+    );
 
     try {
       return await Promise.race([
-        proxyMethod(
-          this.channel,
-          Comlink.proxy(syncMessageCallback),
-          ...args,
-        ),
+        proxyMethod(this.channel, Comlink.proxy(syncMessageCallback), ...args),
         this._interruptPromise,
       ]);
     } finally {
@@ -128,15 +129,23 @@ export interface ExposeSyncExtras {
 }
 
 type SyncMessageCallbackStatus = "reading" | "sleeping" | "slept";
-type SyncMessageCallback = (messageId: string, status: SyncMessageCallbackStatus) => void;
+type SyncMessageCallback = (
+  messageId: string,
+  status: SyncMessageCallbackStatus,
+) => void;
 
-export function exposeSync<T extends any[]>(func: (extras: ExposeSyncExtras, ...args: T) => any) {
+export function exposeSync<T extends any[]>(
+  func: (extras: ExposeSyncExtras, ...args: T) => any,
+) {
   return function (
     channel: Channel | null,
     syncMessageCallback: SyncMessageCallback,
     ...args: T
   ) {
-    function fullSyncMessageCallback(status: "reading" | "sleeping", options?: { timeout: number }) {
+    function fullSyncMessageCallback(
+      status: "reading" | "sleeping",
+      options?: {timeout: number},
+    ) {
       if (!channel) {
         throw new NoChannelError();
       }
@@ -167,5 +176,5 @@ export function exposeSync<T extends any[]>(func: (extras: ExposeSyncExtras, ...
       },
     };
     return func(extras, ...args);
-  }
+  };
 }

@@ -6,7 +6,6 @@ import {exposeSync} from "../lib";
 import * as Comlink from "comlink";
 import {asyncSleep, syncSleep} from "sync-message";
 
-
 Comlink.expose({
   testBasic: exposeSync((extras, num) => {
     return num * 2;
@@ -35,8 +34,7 @@ Comlink.expose({
 
   testInterruptLoop: exposeSync(() => {
     const start = performance.now();
-    while (performance.now() - start < 1000) {
-    }
+    while (performance.now() - start < 1000) {}
     return "failed";
   }),
 
@@ -49,13 +47,15 @@ Comlink.expose({
     }
   }),
 
-  testSleep: exposeSync(async (extras, ms: number, getMessageId: () => Promise<string>) => {
-    const start = performance.now();
-    extras.syncSleep(ms);
-    const slept = performance.now() - start;
-    await asyncSleep(100);
-    return {slept, messageId: await getMessageId()};
-  }),
+  testSleep: exposeSync(
+    async (extras, ms: number, getMessageId: () => Promise<string>) => {
+      const start = performance.now();
+      extras.syncSleep(ms);
+      const slept = performance.now() - start;
+      await asyncSleep(100);
+      return {slept, messageId: await getMessageId()};
+    },
+  ),
 
   testInterrupter: exposeSync(async (extras, getInterrupter: any) => {
     await new Promise((resolve) => {
