@@ -2,6 +2,7 @@ import json
 import os
 from datetime import datetime
 from pathlib import Path
+from time import sleep
 
 import pytest
 from selenium import webdriver
@@ -102,6 +103,7 @@ def test_lib(caps, url):
 
 def _tests(driver, url):
     driver.get(url)
+    sleep(10)  # Prevent NoSuchFrameException with Safari
     elem = driver.find_element_by_id("result")
     text = elem.text
     print(text)
