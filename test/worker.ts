@@ -2,18 +2,18 @@
 // Otherwise webpack fails silently
 // https://github.com/facebook/create-react-app/issues/8014
 
-import {exposeSync} from "../lib";
+import {syncExpose} from "../lib";
 import * as Comlink from "comlink";
 import {asyncSleep, syncSleep} from "sync-message";
 
 Comlink.expose({
-  testBasic: exposeSync((extras, num) => {
+  testBasic: syncExpose((extras, num) => {
     return num * 2;
   }),
 
-  testRead: exposeSync((extras) => extras.readMessage() * 3),
+  testRead: syncExpose((extras) => extras.readMessage() * 3),
 
-  testReadInterrupt: exposeSync((extras) => {
+  testReadInterrupt: syncExpose((extras) => {
     try {
       extras.readMessage();
       return "failed";
@@ -22,23 +22,23 @@ Comlink.expose({
     }
   }),
 
-  testInterruptAsyncSleep: exposeSync(async () => {
+  testInterruptAsyncSleep: syncExpose(async () => {
     await asyncSleep(1000);
     return "failed";
   }),
 
-  testInterruptSyncSleepDirect: exposeSync((extras) => {
+  testInterruptSyncSleepDirect: syncExpose((extras) => {
     syncSleep(1000, extras.channel);
     return "failed";
   }),
 
-  testInterruptLoop: exposeSync(() => {
+  testInterruptLoop: syncExpose(() => {
     const start = performance.now();
     while (performance.now() - start < 1000) {}
     return "failed";
   }),
 
-  testInterruptSyncSleepExtras: exposeSync((extras) => {
+  testInterruptSyncSleepExtras: syncExpose((extras) => {
     try {
       extras.syncSleep(1000);
       return "failed";
@@ -47,7 +47,7 @@ Comlink.expose({
     }
   }),
 
-  testSleep: exposeSync(
+  testSleep: syncExpose(
     async (extras, ms: number, getMessageId: () => Promise<string>) => {
       const start = performance.now();
       extras.syncSleep(ms);
@@ -57,7 +57,7 @@ Comlink.expose({
     },
   ),
 
-  testInterrupter: exposeSync(async (extras, getInterrupter: any) => {
+  testInterrupter: syncExpose(async (extras, getInterrupter: any) => {
     await new Promise((resolve) => {
       return getInterrupter(Comlink.proxy(resolve));
     });

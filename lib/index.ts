@@ -11,7 +11,7 @@ export class NoChannelError extends Error {
   public readonly type = "NoChannelError";
 }
 
-export class TaskClient<T> {
+export class SyncClient<T> {
   public interrupter?: () => void;
   public state: "idle" | "running" | "awaitingMessage" = "idle";
   public worker: Worker;
@@ -47,7 +47,7 @@ export class TaskClient<T> {
     this._start();
   }
 
-  public async runTask(proxyMethod: any, ...args: any[]) {
+  public async call(proxyMethod: any, ...args: any[]) {
     if (this.state !== "idle") {
       throw new Error(`State is ${this.state}, not idle`);
     }
@@ -122,7 +122,7 @@ export class TaskClient<T> {
   }
 }
 
-export interface ExposeSyncExtras {
+export interface SyncExtras {
   channel: Channel | null;
   readMessage: () => any;
   syncSleep: (ms: number) => void;
@@ -134,8 +134,8 @@ type SyncMessageCallback = (
   status: SyncMessageCallbackStatus,
 ) => void;
 
-export function exposeSync<T extends any[], R>(
-  func: (extras: ExposeSyncExtras, ...args: T) => R,
+export function syncExpose<T extends any[], R>(
+  func: (extras: SyncExtras, ...args: T) => R,
 ) {
   return async function (
     channel: Channel | null,
@@ -164,7 +164,7 @@ export function exposeSync<T extends any[], R>(
       }
     }
 
-    const extras: ExposeSyncExtras = {
+    const extras: SyncExtras = {
       channel,
       readMessage() {
         return fullSyncMessageCallback("reading");

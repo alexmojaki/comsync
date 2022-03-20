@@ -6,7 +6,7 @@ import {
   ServiceWorkerError,
   writeMessage,
 } from "sync-message";
-import {InterruptError, TaskClient} from "../lib";
+import {InterruptError, SyncClient} from "../lib";
 import * as Comlink from "comlink";
 
 const Worker = require("worker-loader!./worker").default;
@@ -30,7 +30,7 @@ async function runTests() {
     channels.push(makeAtomicsChannel());
   }
 
-  const client = new TaskClient(() => new Worker());
+  const client = new SyncClient(() => new Worker());
   const testResults: any[] = [];
 
   for (const channel of channels) {
@@ -39,7 +39,7 @@ async function runTests() {
     let resultPromise: Promise<any>;
 
     function runTask(...args: any[]) {
-      resultPromise = client.runTask(client.workerProxy[test], ...args);
+      resultPromise = client.call(client.workerProxy[test], ...args);
     }
 
     async function expect(expected: any) {
