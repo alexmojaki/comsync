@@ -23,7 +23,7 @@ export class SyncClient<T> {
 
   public constructor(
     public workerCreator: () => Worker,
-    public channel?: Channel,
+    public channel?: Channel | null,
   ) {
     this._start();
   }

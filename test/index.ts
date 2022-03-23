@@ -6,7 +6,7 @@ import {
   ServiceWorkerError,
   writeMessage,
 } from "sync-message";
-import {InterruptError, SyncClient} from "../lib";
+import {SyncClient} from "../lib";
 import * as Comlink from "comlink";
 
 const Worker = require("worker-loader!./worker").default;
