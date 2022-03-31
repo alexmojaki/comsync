@@ -11,7 +11,7 @@ export class NoChannelError extends Error {
   public readonly type = "NoChannelError";
 }
 
-export class SyncClient<T> {
+export class SyncClient<T=any> {
   public interrupter?: () => void;
   public state: "idle" | "running" | "awaitingMessage" = "idle";
   public worker: Worker;
