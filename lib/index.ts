@@ -15,7 +15,7 @@ export class SyncClient<T> {
   public interrupter?: () => void;
   public state: "idle" | "running" | "awaitingMessage" = "idle";
   public worker: Worker;
-  public workerProxy: any;
+  public workerProxy: Comlink.Remote<T>;
 
   private _interruptRejector?: (reason?: any) => void;
   private _interruptPromise?: Promise<void>;
