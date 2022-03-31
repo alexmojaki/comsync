@@ -39,7 +39,7 @@ async function runTests() {
     let resultPromise: Promise<any>;
 
     function runTask(...args: any[]) {
-      resultPromise = client.call((client.workerProxy as any)[test], ...args);
+      resultPromise = client.call(client.workerProxy[test], ...args);
     }
 
     async function expect(expected: any) {
