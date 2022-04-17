@@ -120,7 +120,7 @@ async function runTests() {
   }
 
   (window as any).testResults = testResults;
-  console.log(testResults);
+  console.log(JSON.stringify(testResults));
 
   let numPassed = testResults.filter((t) => t.passed).length;
   let numTotal = testResults.length;
