@@ -19,8 +19,11 @@ export class SyncClient<T=any> {
 
   private _interruptRejector?: (reason?: any) => void;
   private _interruptPromise?: Promise<void>;
+
   private _messageIdBase = "";
   private _messageIdSeq = 0;
+
+  private _awaitingMessageResolve?: () => void;
 
   public constructor(
     public workerCreator: () => Worker,
@@ -67,6 +70,7 @@ export class SyncClient<T=any> {
       if (status === "reading") {
         this.state = "awaitingMessage";
         this._messageIdSeq++;
+        this._awaitingMessageResolve?.();
       } else if (status === "sleeping") {
         this.state = "sleeping";
         this._messageIdSeq++;
@@ -91,6 +95,17 @@ export class SyncClient<T=any> {
   }
 
   public async writeMessage(message: any) {
+    if (this.state !== "awaitingMessage") {
+      if (this._awaitingMessageResolve) {
+        throw new Error("Not waiting for message, and another write is already queued.")
+      }
+
+      await new Promise<void>((resolve) => {
+        this._awaitingMessageResolve = resolve;
+      });
+      delete this._awaitingMessageResolve;
+    }
+
     await this._writeMessage({message});
   }
 
@@ -118,6 +133,7 @@ export class SyncClient<T=any> {
     this.state = "idle";
     delete this._interruptPromise;
     delete this._interruptRejector;
+    delete this._awaitingMessageResolve;
   }
 }
 
