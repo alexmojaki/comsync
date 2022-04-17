@@ -74,7 +74,6 @@ async function runTests() {
 
     test = "testRead";
     runTask();
-    await asyncSleep(100);
     await client.writeMessage(10);
     await expect(30);
 
@@ -82,7 +81,6 @@ async function runTests() {
       runTask();
       await asyncSleep(100);
       await client.interrupt();
-      await asyncSleep(100);
       await client.writeMessage("message2");
       await expect("InterruptError message2");
     }
