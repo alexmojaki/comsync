@@ -52,7 +52,7 @@ async function runTests() {
         passed,
         channelType,
       };
-      console.log(testResult);
+      console.log(JSON.stringify(testResult));
       testResults.push(testResult);
     }
 
