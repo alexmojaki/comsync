@@ -101,11 +101,11 @@ async function runTests() {
       test = "testSleep";
       runTask(
         ms,
-        Comlink.proxy(() => (client as any)._messageId),
+        Comlink.proxy(() => client.state),
       );
       resultPromise = resultPromise.then(
-        ({slept, messageId}) =>
-          messageId === "" && slept > ms && slept < ms * 1.5,
+        ({slept, state}) =>
+          state === "running" && slept > ms && slept < ms * 1.5,
       );
       await expect(true);
     }

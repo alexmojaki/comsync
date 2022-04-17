@@ -48,12 +48,12 @@ Comlink.expose({
   }),
 
   testSleep: syncExpose(
-    async (extras, ms: number, getMessageId: () => Promise<string>) => {
+    async (extras, ms: number, getState: () => Promise<string>) => {
       const start = performance.now();
       extras.syncSleep(ms);
       const slept = performance.now() - start;
       await asyncSleep(100);
-      return {slept, messageId: await getMessageId()};
+      return {slept, state: await getState()};
     },
   ),
 
