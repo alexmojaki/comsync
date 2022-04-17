@@ -15,8 +15,7 @@ Comlink.expose({
 
   testReadInterrupt: syncExpose((extras) => {
     try {
-      extras.readMessage();
-      return "failed";
+      return "failed " + extras.readMessage();
     } catch (e) {
       return e.type + " " + extras.readMessage();
     }
