@@ -66,8 +66,10 @@ export class SyncClient<T=any> {
 
       if (status === "reading") {
         this.state = "awaitingMessage";
+        this._messageIdSeq++;
       } else if (status === "sleeping") {
         this.state = "sleeping";
+        this._messageIdSeq++;
       } else if (status === "slept") {
         this.state = "running";
       }
@@ -102,7 +104,7 @@ export class SyncClient<T=any> {
 
   private async _writeMessage(message: any) {
     this.state = "running";
-    const messageId = makeMessageId(this._messageIdBase, this._messageIdSeq++);
+    const messageId = makeMessageId(this._messageIdBase, this._messageIdSeq);
     await writeMessage(this.channel, message, messageId);
   }
 
@@ -148,7 +150,7 @@ export function syncExpose<T extends any[], R>(
         throw new NoChannelError();
       }
       syncMessageCallback(status);
-      const messageId = makeMessageId(messageIdBase, messageIdSeq++);
+      const messageId = makeMessageId(messageIdBase, ++messageIdSeq);
       const response = readMessage(channel, messageId, options);
       if (response) {
         const {message, interrupted} = response;
