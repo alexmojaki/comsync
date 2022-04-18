@@ -62,7 +62,7 @@ Comlink.expose({
   doStuff: syncExpose((syncExtras, arg1, arg2) => {
     // syncExtras provides an improved interface for reading messages over raw sync-message.
     const message = syncExtras.readMessage();
-  })
+  }),
 });
 ```
 
@@ -102,13 +102,13 @@ The extra arguments are then transformed into the first argument of type `SyncEx
 So the process looks like this:
 
 ```js
-client.call(client.workerProxy.doStuff, arg1, arg2)
+client.call(client.workerProxy.doStuff, arg1, arg2);
 // =>
-client.workerProxy.doStuff(client.channel, Comlink.proxy(callback), arg1, arg2)
+client.workerProxy.doStuff(client.channel, Comlink.proxy(callback), arg1, arg2);
 // => in the worker: rawDoStuff is returned by syncExpose and passed to Comlink.expose
-rawDoStuff(channel, callback, arg1, arg2)
+rawDoStuff(channel, callback, arg1, arg2);
 // => here doStuff is the function written by you and passed to syncExpose
-doStuff(syncExtras, arg1, arg2)
+doStuff(syncExtras, arg1, arg2);
 ```
 
 ### `writeMessage`
@@ -119,7 +119,7 @@ Throws an error if `client.state != "awaitingMessage"`, so either check that you
 
 ### `interrupt`
 
-Does nothing if `client.state == "idle"`, i.e. there's no `call` in progress. Otherwise, chooses the first available of three strategies  to interrupt the current `call`:
+Does nothing if `client.state == "idle"`, i.e. there's no `call` in progress. Otherwise, chooses the first available of three strategies to interrupt the current `call`:
 
 1. If the worker is currently hanging on `SyncExtras.readMessage` or `SyncExtras.syncSleep`, send a message causing that call to throw `InterruptError`. The worker is responsible for responding to the error appropriately.
 2. Otherwise, if `client.interrupter` has a value, call it with no arguments. This is an optional user-defined function that can do anything. Note that the worker cannot receive messages while performing synchronous work, but it can check the value of a `SharedArrayBuffer`.

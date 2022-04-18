@@ -11,7 +11,7 @@ export class NoChannelError extends Error {
   public readonly type = "NoChannelError";
 }
 
-export class SyncClient<T=any> {
+export class SyncClient<T = any> {
   public interrupter?: () => void;
   public state: "idle" | "running" | "awaitingMessage" | "sleeping" = "idle";
   public worker: Worker;
@@ -85,7 +85,12 @@ export class SyncClient<T=any> {
 
     try {
       return await Promise.race([
-        proxyMethod(this.channel, Comlink.proxy(syncMessageCallback), this._messageIdBase, ...args),
+        proxyMethod(
+          this.channel,
+          Comlink.proxy(syncMessageCallback),
+          this._messageIdBase,
+          ...args,
+        ),
         this._interruptPromise,
       ]);
     } finally {
@@ -96,12 +101,14 @@ export class SyncClient<T=any> {
 
   public async writeMessage(message: any) {
     if (this.state === "idle" || !this._messageIdBase) {
-      throw new Error("No active call to send a message to.")
+      throw new Error("No active call to send a message to.");
     }
 
     if (this.state !== "awaitingMessage") {
       if (this._awaitingMessageResolve) {
-        throw new Error("Not waiting for message, and another write is already queued.")
+        throw new Error(
+          "Not waiting for message, and another write is already queued.",
+        );
       }
 
       await new Promise<void>((resolve) => {
@@ -199,7 +206,6 @@ export function syncExpose<T extends any[], R>(
     return func(extras, ...args);
   };
 }
-
 
 function makeMessageId(base: string, seq: number) {
   return `${base}-${seq}`;
