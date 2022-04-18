@@ -95,6 +95,10 @@ export class SyncClient<T=any> {
   }
 
   public async writeMessage(message: any) {
+    if (this.state === "idle" || !this._messageIdBase) {
+      throw new Error("No active call to send a message to.")
+    }
+
     if (this.state !== "awaitingMessage") {
       if (this._awaitingMessageResolve) {
         throw new Error("Not waiting for message, and another write is already queued.")
@@ -134,6 +138,7 @@ export class SyncClient<T=any> {
     delete this._interruptPromise;
     delete this._interruptRejector;
     delete this._awaitingMessageResolve;
+    delete this._messageIdBase;
   }
 }
 
