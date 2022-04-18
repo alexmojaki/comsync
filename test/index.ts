@@ -52,7 +52,7 @@ async function runTests() {
         passed,
         channelType,
       };
-      console.log(testResult);
+      console.log(JSON.stringify(testResult));
       testResults.push(testResult);
     }
 
@@ -74,7 +74,6 @@ async function runTests() {
 
     test = "testRead";
     runTask();
-    await asyncSleep(100);
     await client.writeMessage(10);
     await expect(30);
 
@@ -82,7 +81,6 @@ async function runTests() {
       runTask();
       await asyncSleep(100);
       await client.interrupt();
-      await asyncSleep(100);
       await client.writeMessage("message2");
       await expect("InterruptError message2");
     }
@@ -101,11 +99,11 @@ async function runTests() {
       test = "testSleep";
       runTask(
         ms,
-        Comlink.proxy(() => (client as any)._messageId),
+        Comlink.proxy(() => client.state),
       );
       resultPromise = resultPromise.then(
-        ({slept, messageId}) =>
-          messageId === "" && slept > ms && slept < ms * 1.5,
+        ({slept, state}) =>
+          state === "running" && slept > ms && slept < ms * 1.5,
       );
       await expect(true);
     }
@@ -122,7 +120,7 @@ async function runTests() {
   }
 
   (window as any).testResults = testResults;
-  console.log(testResults);
+  console.log(JSON.stringify(testResults));
 
   let numPassed = testResults.filter((t) => t.passed).length;
   let numTotal = testResults.length;

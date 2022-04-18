@@ -13,13 +13,17 @@ export class NoChannelError extends Error {
 
 export class SyncClient<T=any> {
   public interrupter?: () => void;
-  public state: "idle" | "running" | "awaitingMessage" = "idle";
+  public state: "idle" | "running" | "awaitingMessage" | "sleeping" = "idle";
   public worker: Worker;
   public workerProxy: Comlink.Remote<T>;
 
   private _interruptRejector?: (reason?: any) => void;
   private _interruptPromise?: Promise<void>;
-  private _messageId = "";
+
+  private _messageIdBase = "";
+  private _messageIdSeq = 0;
+
+  private _awaitingMessageResolve?: () => void;
 
   public constructor(
     public workerCreator: () => Worker,
@@ -33,7 +37,7 @@ export class SyncClient<T=any> {
       return;
     }
 
-    if (this._messageId) {
+    if (this.state === "awaitingMessage" || this.state === "sleeping") {
       await this._writeMessage({interrupted: true});
       return;
     }
@@ -54,17 +58,24 @@ export class SyncClient<T=any> {
 
     let runningThisTask = true;
     this.state = "running";
-    const th = this;
-    const syncMessageCallback: SyncMessageCallback = (messageId, status) => {
+
+    this._messageIdBase = uuidv4();
+    this._messageIdSeq = 0;
+
+    const syncMessageCallback: SyncMessageCallback = (status) => {
       if (!runningThisTask || status === "init") {
         return;
       }
 
-      th._messageId = messageId;
       if (status === "reading") {
-        th.state = "awaitingMessage";
-      } else if (status === "slept" && th._messageId === messageId) {
-        th._messageId = "";
+        this.state = "awaitingMessage";
+        this._messageIdSeq++;
+        this._awaitingMessageResolve?.();
+      } else if (status === "sleeping") {
+        this.state = "sleeping";
+        this._messageIdSeq++;
+      } else if (status === "slept") {
+        this.state = "running";
       }
     };
 
@@ -74,7 +85,7 @@ export class SyncClient<T=any> {
 
     try {
       return await Promise.race([
-        proxyMethod(this.channel, Comlink.proxy(syncMessageCallback), ...args),
+        proxyMethod(this.channel, Comlink.proxy(syncMessageCallback), this._messageIdBase, ...args),
         this._interruptPromise,
       ]);
     } finally {
@@ -84,9 +95,21 @@ export class SyncClient<T=any> {
   }
 
   public async writeMessage(message: any) {
-    if (this.state !== "awaitingMessage") {
-      throw new Error("Not waiting for message");
+    if (this.state === "idle" || !this._messageIdBase) {
+      throw new Error("No active call to send a message to.")
     }
+
+    if (this.state !== "awaitingMessage") {
+      if (this._awaitingMessageResolve) {
+        throw new Error("Not waiting for message, and another write is already queued.")
+      }
+
+      await new Promise<void>((resolve) => {
+        this._awaitingMessageResolve = resolve;
+      });
+      delete this._awaitingMessageResolve;
+    }
+
     await this._writeMessage({message});
   }
 
@@ -99,13 +122,9 @@ export class SyncClient<T=any> {
   }
 
   private async _writeMessage(message: any) {
-    const {_messageId} = this;
-    if (!_messageId) {
-      throw new Error("No messageId set");
-    }
     this.state = "running";
-    this._messageId = "";
-    await writeMessage(this.channel, message, _messageId);
+    const messageId = makeMessageId(this._messageIdBase, this._messageIdSeq);
+    await writeMessage(this.channel, message, messageId);
   }
 
   private _start() {
@@ -116,9 +135,10 @@ export class SyncClient<T=any> {
 
   private _reset() {
     this.state = "idle";
-    this._messageId = "";
     delete this._interruptPromise;
     delete this._interruptRejector;
+    delete this._awaitingMessageResolve;
+    delete this._messageIdBase;
   }
 }
 
@@ -129,10 +149,7 @@ export interface SyncExtras {
 }
 
 type SyncMessageCallbackStatus = "init" | "reading" | "sleeping" | "slept";
-type SyncMessageCallback = (
-  messageId: string,
-  status: SyncMessageCallbackStatus,
-) => void;
+type SyncMessageCallback = (status: SyncMessageCallbackStatus) => void;
 
 export function syncExpose<T extends any[], R>(
   func: (extras: SyncExtras, ...args: T) => R,
@@ -140,9 +157,12 @@ export function syncExpose<T extends any[], R>(
   return async function (
     channel: Channel | null,
     syncMessageCallback: SyncMessageCallback,
+    messageIdBase: string,
     ...args: T
   ): Promise<R> {
-    await syncMessageCallback("", "init");
+    await syncMessageCallback("init");
+    let messageIdSeq = 0;
+
     function fullSyncMessageCallback(
       status: "reading" | "sleeping",
       options?: {timeout: number},
@@ -150,8 +170,8 @@ export function syncExpose<T extends any[], R>(
       if (!channel) {
         throw new NoChannelError();
       }
-      const messageId = uuidv4();
-      syncMessageCallback(messageId, status);
+      syncMessageCallback(status);
+      const messageId = makeMessageId(messageIdBase, ++messageIdSeq);
       const response = readMessage(channel, messageId, options);
       if (response) {
         const {message, interrupted} = response;
@@ -160,7 +180,7 @@ export function syncExpose<T extends any[], R>(
         }
         return message;
       } else if (status === "sleeping") {
-        syncMessageCallback(messageId, "slept");
+        syncMessageCallback("slept");
       }
     }
 
@@ -178,4 +198,9 @@ export function syncExpose<T extends any[], R>(
     };
     return func(extras, ...args);
   };
+}
+
+
+function makeMessageId(base: string, seq: number) {
+  return `${base}-${seq}`;
 }
