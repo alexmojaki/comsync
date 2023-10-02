@@ -4,11 +4,13 @@ import * as Comlink from "comlink";
 export class InterruptError extends Error {
   // To avoid having to use instanceof
   public readonly type = "InterruptError";
+  public readonly name = this.type;
 }
 
 export class NoChannelError extends Error {
   // To avoid having to use instanceof
   public readonly type = "NoChannelError";
+  public readonly name = this.type;
 }
 
 export class SyncClient<T = any> {
