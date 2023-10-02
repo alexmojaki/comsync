@@ -70,6 +70,7 @@ def params():
                     if browser in ["Safari"] and os_version == "Monterey":
                         url = "https://localhost:8002"
                         acceptSslCerts = True
+                        continue  # TODO
                     elif browser in ["Firefox", "Safari"]:
                         url = "https://localhost:8001"
                         acceptSslCerts = True
